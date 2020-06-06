@@ -4,6 +4,7 @@
 Export Dayone JSON Files to html"
 """
 import json
+import os
 import sys
 import base64
 import re
@@ -29,13 +30,29 @@ def main():
     filename = sys.argv[1]
     out_foldername = "./out"
 
-    template_start = "<html><meta charset='utf-8'><head></head><body>"
+    template_start = """<html><meta charset='utf-8'>
+                               <head>
+                               <style>
+                                img {
+                                       width: 200px;
+                                    }
+                               </style>
+                               </head>
+                               <body>"""
     template_end = "</body></html>"
 
 
     raw_data = json.loads(open(filename).read())
     for entry in raw_data['entries']:
-        out_filename = "{}/{}.html".format(out_foldername, entry['creationDate'])
+        date, time = entry['creationDate'].split('T')
+        time = time.replace(':', '-')
+        year, month, day = date.split('-')[:3]
+        folder = "{}/{}/{}".format(out_foldername, year, month)
+        try:
+            os.makedirs(folder)
+        except FileExistsError:
+            pass
+        out_filename = "{}/{}-{}-{} {}.html".format(folder, year, month, day, time[:-4])
         photos = {}
         with open(out_filename, 'w+') as outfile:
             outfile.write(template_start)
